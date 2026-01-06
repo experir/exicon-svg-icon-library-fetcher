@@ -15,6 +15,13 @@ namespace SvgIconFetcher.Window
         private string outputFolder = "Assets/Icons";
         private bool isLoading = false;
         private string loadingMessage = "";
+        
+        // Custom URL mode
+        private string customUrl = "";
+        private string customIconPreview = "";
+        private string customIconName = "";
+        private bool isLoadingCustom = false;
+        private Vector2 customPreviewScroll;
 
         [MenuItem("Tools/SVG Icon Fetcher")]
         public static void Open()
@@ -25,6 +32,10 @@ namespace SvgIconFetcher.Window
         private void OnGUI()
         {
             EditorGUILayout.LabelField("SVG Icon Fetcher", EditorStyles.boldLabel);
+            
+            // Method 1: Icon Packs
+            EditorGUILayout.Space(5);
+            EditorGUILayout.LabelField("Method 1: Browse Icon Packs", EditorStyles.boldLabel);
 
             var sources = IconSourceRegistry.Sources;
             selectedSourceIndex = EditorGUILayout.Popup(
@@ -73,6 +84,38 @@ namespace SvgIconFetcher.Window
 
             if (GUILayout.Button("Download Selected"))
                 DownloadSelected();
+                
+            // Method 2: Custom URL
+            EditorGUILayout.Space(20);
+            EditorGUILayout.LabelField("Method 2: Download from Custom URL", EditorStyles.boldLabel);
+            
+            EditorGUILayout.HelpBox(
+                "Paste a direct link to an SVG icon from GitHub.\n" +
+                "Example: https://github.com/lucide-icons/lucide/blob/main/icons/heart.svg",
+                MessageType.Info
+            );
+            
+            customUrl = EditorGUILayout.TextField("Icon URL", customUrl);
+            
+            EditorGUI.BeginDisabledGroup(isLoadingCustom || string.IsNullOrEmpty(customUrl));
+            if (GUILayout.Button(isLoadingCustom ? "Downloading..." : "Download Icon"))
+                DownloadCustomIcon();
+            EditorGUI.EndDisabledGroup();
+            
+            // Show preview after download
+            if (!string.IsNullOrEmpty(customIconPreview))
+            {
+                EditorGUILayout.Space(5);
+                EditorGUILayout.LabelField($"Preview: {customIconName}", EditorStyles.boldLabel);
+                
+                // Show SVG code preview in a scrollable text area
+                EditorGUILayout.LabelField("SVG Code:", EditorStyles.miniLabel);
+                customPreviewScroll = EditorGUILayout.BeginScrollView(customPreviewScroll, GUILayout.Height(150));
+                EditorGUILayout.TextArea(customIconPreview, GUILayout.ExpandHeight(true));
+                EditorGUILayout.EndScrollView();
+                
+                EditorGUILayout.HelpBox("Icon loaded successfully! Click 'Download Icon' to save it.", MessageType.Info);
+            }
         }
 
         private async void LoadIcons()
@@ -143,6 +186,63 @@ AssetDatabase.ImportAsset(path);
             }
 
             AssetDatabase.Refresh();
+        }
+        
+        private async void DownloadCustomIcon()
+        {
+            if (isLoadingCustom || string.IsNullOrEmpty(customUrl))
+                return;
+            
+            isLoadingCustom = true;
+            customIconPreview = "";
+            customIconName = "";
+            
+            try
+            {
+                // Convert GitHub blob URL to raw URL
+                string rawUrl = customUrl
+                    .Replace("github.com", "raw.githubusercontent.com")
+                    .Replace("/blob/", "/");
+                
+                // Extract icon name from URL
+                var uri = new System.Uri(rawUrl);
+                customIconName = System.IO.Path.GetFileNameWithoutExtension(uri.AbsolutePath);
+                
+                // Download and sanitize SVG
+                var svg = await SvgDownloader.Download(rawUrl);
+                customIconPreview = SvgSanitizer.Sanitize(svg);
+                
+                // Save to disk
+                if (!System.IO.Directory.Exists(outputFolder))
+                    System.IO.Directory.CreateDirectory(outputFolder);
+                
+                var path = System.IO.Path.Combine(outputFolder, $"{customIconName}.svg");
+                System.IO.File.WriteAllText(path, customIconPreview);
+                AssetDatabase.ImportAsset(path);
+                AssetDatabase.Refresh();
+                
+                Debug.Log($"Downloaded custom icon: {customIconName}");
+                EditorUtility.DisplayDialog("Success", 
+                    $"Icon '{customIconName}.svg' downloaded successfully to:\n{outputFolder}", 
+                    "OK");
+                
+                // Clear after download
+                customUrl = "";
+                customIconPreview = "";
+                customIconName = "";
+            }
+            catch (System.Exception e)
+            {
+                EditorUtility.DisplayDialog("Error", 
+                    $"Failed to download icon:\n{e.Message}\n\n" +
+                    "Make sure the URL is a direct link to an SVG file on GitHub.", 
+                    "OK");
+            }
+            finally
+            {
+                isLoadingCustom = false;
+                Repaint();
+            }
         }
     }
 }

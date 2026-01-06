@@ -53,7 +53,7 @@ namespace SvgIconFetcher.Core
             while (!op.isDone)
                 await Task.Yield();
 
-            // 3️⃣ Handle GitHub limits clearly
+            // Handle GitHub limits clearly
             if (req.responseCode == 403)
             {
                 string rateLimitReset = req.GetResponseHeader("X-RateLimit-Reset");

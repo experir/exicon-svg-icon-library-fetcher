@@ -14,6 +14,6 @@ namespace SvgIconFetcher.Models
         public string IndexUrl;
         public IconIndexType IndexType;
         public string License;
-        public string PathFilter; // Filter for specific folder in tree (e.g., "icons/")
+        public string PathFilter;
     }
 }
