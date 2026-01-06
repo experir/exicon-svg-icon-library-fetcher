@@ -413,7 +413,29 @@ namespace SvgIconFetcher.Window
             if (url.Contains("iconoir-icons/iconoir"))
                 return "Iconoir";
             
-            // Unknown repository
+            // Unknown repository - extract repository name from GitHub URL
+            // URL format: https://github.com/{owner}/{repo}/...
+            try
+            {
+                var uri = new System.Uri(url);
+                if (uri.Host.Contains("github.com") || uri.Host.Contains("githubusercontent.com"))
+                {
+                    var pathSegments = uri.AbsolutePath.Split('/');
+                    if (pathSegments.Length >= 3)
+                    {
+                        // pathSegments[0] is empty, pathSegments[1] is owner, pathSegments[2] is repo
+                        string repoName = pathSegments[2];
+                        // Capitalize first letter for better folder naming
+                        if (!string.IsNullOrEmpty(repoName))
+                            return char.ToUpper(repoName[0]) + repoName.Substring(1);
+                    }
+                }
+            }
+            catch
+            {
+                // If URL parsing fails, return null
+            }
+            
             return null;
         }
     }
