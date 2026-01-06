@@ -64,7 +64,32 @@ namespace SvgIconFetcher.Window
             }
 
             EditorGUILayout.Space(10);
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Icons", EditorStyles.boldLabel);
+            
+            // Select All / Deselect All toggle
+            if (icons.Count > 0)
+            {
+                bool allSelected = selectedIcons.Count == icons.Count;
+                bool newAllSelected = EditorGUILayout.ToggleLeft("Select All", allSelected, GUILayout.Width(100));
+                
+                if (newAllSelected != allSelected)
+                {
+                    if (newAllSelected)
+                    {
+                        // Select all
+                        selectedIcons.Clear();
+                        foreach (var icon in icons)
+                            selectedIcons.Add(icon);
+                    }
+                    else
+                    {
+                        // Deselect all
+                        selectedIcons.Clear();
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
 
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(250));
             foreach (var icon in icons)
