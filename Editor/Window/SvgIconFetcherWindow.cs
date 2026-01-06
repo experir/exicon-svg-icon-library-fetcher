@@ -156,6 +156,10 @@ namespace SvgIconFetcher.Window
             {
                 var source = IconSourceRegistry.Sources[selectedSourceIndex];
                 icons = await IconIndexFetcher.FetchIcons(source);
+                
+                // Update output folder to include pack name
+                outputFolder = $"Assets/Icons/{source.Name}";
+                
                 loadingMessage = $"✓ Loaded {icons.Count} icons from {source.Name}";
                 Debug.Log($"Loaded {icons.Count} icons from {source.Name}");
                 
@@ -197,17 +201,27 @@ namespace SvgIconFetcher.Window
 
             foreach (var icon in selectedIcons)
             {
-                var url = $"{source.BaseUrl}/{icon}.svg";
-                var svg = await SvgDownloader.Download(url);
-                svg = SvgSanitizer.Sanitize(svg);
+                try
+                {
+                    var url = $"{source.BaseUrl}/{icon}.svg";
+                    Debug.Log($"Attempting to download: {url}");
+                    
+                    var svg = await SvgDownloader.Download(url);
+                    svg = SvgSanitizer.Sanitize(svg);
 
-                if (!System.IO.Directory.Exists(outputFolder))
-    System.IO.Directory.CreateDirectory(outputFolder);
+                    if (!System.IO.Directory.Exists(outputFolder))
+                        System.IO.Directory.CreateDirectory(outputFolder);
 
-var path = System.IO.Path.Combine(outputFolder, $"{icon}.svg");
-System.IO.File.WriteAllText(path, svg);
-AssetDatabase.ImportAsset(path);
-
+                    var path = System.IO.Path.Combine(outputFolder, $"{icon}.svg");
+                    System.IO.File.WriteAllText(path, svg);
+                    AssetDatabase.ImportAsset(path);
+                    
+                    Debug.Log($"✓ Downloaded: {icon}");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"✗ Failed to download '{icon}': {e.Message}");
+                }
             }
 
             AssetDatabase.Refresh();
