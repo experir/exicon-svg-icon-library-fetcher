@@ -328,6 +328,15 @@ namespace SvgIconFetcher.Window
             if (url.Contains("ionic-team/ionicons"))
                 return "Ionicons Outline";
             
+            if (url.Contains("phosphor-icons/core"))
+                return "Phosphor Icons";
+            
+            if (url.Contains("primer/octicons"))
+                return "Octicons";
+            
+            if (url.Contains("iconoir-icons/iconoir"))
+                return "Iconoir";
+            
             // Unknown repository
             return null;
         }

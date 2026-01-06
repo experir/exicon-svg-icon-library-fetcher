@@ -18,6 +18,14 @@ In the **"Icon Pack"** dropdown, you can choose from:
 - **Lucide** - Modern icon set (ISC License)
 - **Tabler Outline** - Outline icons (MIT License)
 - **Tabler Filled** - Filled icons (MIT License)
+- **Heroicons Outline** - Tailwind CSS outline icons (MIT License)
+- **Heroicons Solid** - Tailwind CSS solid icons (MIT License)
+- **Bootstrap Icons** - Official Bootstrap icon library (MIT License)
+- **Feather Icons** - Simply beautiful open source icons (MIT License)
+- **Ionicons Outline** - Premium designed icons by Ionic (MIT License)
+- **Phosphor Icons** - Flexible icon family (MIT License)
+- **Octicons** - GitHub's official icons (MIT License)
+- **Iconoir** - Minimalist icon library (MIT License)
 
 #### 2. Load Icon List
 
@@ -101,8 +109,15 @@ GitHub allows 60 API requests per hour without authentication.
 Always verify the license of the icon package you're using:
 - **Lucide:** ISC License
 - **Tabler Icons:** MIT License
+- **Heroicons:** MIT License (by Tailwind Labs)
+- **Bootstrap Icons:** MIT License
+- **Feather Icons:** MIT License
+- **Ionicons:** MIT License
+- **Phosphor Icons:** MIT License
+- **Octicons:** MIT License (by GitHub)
+- **Iconoir:** MIT License
 
-Both licenses allow commercial use, but it's good practice to credit the authors.
+All licenses allow commercial use. It's good practice to credit the authors.
 
 ## Troubleshooting
 
@@ -144,3 +159,10 @@ Both licenses allow commercial use, but it's good practice to credit the authors
 
 - **Lucide Icons:** https://lucide.dev
 - **Tabler Icons:** https://tabler.io/icons
+- **Heroicons:** https://heroicons.com
+- **Bootstrap Icons:** https://icons.getbootstrap.com
+- **Feather Icons:** https://feathericons.com
+- **Ionicons:** https://ionic.io/ionicons
+- **Phosphor Icons:** https://phosphoricons.com
+- **Octicons:** https://primer.style/foundations/icons
+- **Iconoir:** https://iconoir.com
