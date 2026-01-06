@@ -90,6 +90,12 @@ namespace SvgIconFetcher.Window
                 }
             }
             EditorGUILayout.EndHorizontal();
+            
+            // Warning about download time
+            if (icons.Count > 0)
+            {
+                EditorGUILayout.HelpBox("Downloading all icons may take some time. Consider selecting only the ones you need.", MessageType.Info);
+            }
 
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(250));
             foreach (var icon in icons)

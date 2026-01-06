@@ -39,6 +39,9 @@ In the **"Icon Pack"** dropdown, you can choose from:
 
 - Scroll through the list and check the icons you want to download
 - You can select as many icons as you want
+- Use the **"Select All"** checkbox to quickly select or deselect all icons
+
+**⚠️ Note:** Downloading all icons from a pack can take some time (icons are downloaded in parallel batches of 10 to speed up the process). If you don't need all of them, it's recommended to select only the ones you actually need.
 
 #### 4. Download Icons
 
