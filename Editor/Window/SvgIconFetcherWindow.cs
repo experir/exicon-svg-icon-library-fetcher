@@ -247,22 +247,28 @@ namespace SvgIconFetcher.Window
                 var uri = new System.Uri(rawUrl);
                 customIconName = System.IO.Path.GetFileNameWithoutExtension(uri.AbsolutePath);
                 
+                // Detect pack name from URL
+                string packName = DetectPackFromUrl(customUrl);
+                string customOutputFolder = string.IsNullOrEmpty(packName) 
+                    ? "Assets/Icons" 
+                    : $"Assets/Icons/{packName}";
+                
                 // Download and sanitize SVG
                 var svg = await SvgDownloader.Download(rawUrl);
                 customIconPreview = SvgSanitizer.Sanitize(svg);
                 
                 // Save to disk
-                if (!System.IO.Directory.Exists(outputFolder))
-                    System.IO.Directory.CreateDirectory(outputFolder);
+                if (!System.IO.Directory.Exists(customOutputFolder))
+                    System.IO.Directory.CreateDirectory(customOutputFolder);
                 
-                var path = System.IO.Path.Combine(outputFolder, $"{customIconName}.svg");
+                var path = System.IO.Path.Combine(customOutputFolder, $"{customIconName}.svg");
                 System.IO.File.WriteAllText(path, customIconPreview);
                 AssetDatabase.ImportAsset(path);
                 AssetDatabase.Refresh();
                 
-                Debug.Log($"Downloaded custom icon: {customIconName}");
+                Debug.Log($"Downloaded custom icon: {customIconName} to {customOutputFolder}");
                 EditorUtility.DisplayDialog("Success", 
-                    $"Icon '{customIconName}.svg' downloaded successfully to:\n{outputFolder}", 
+                    $"Icon '{customIconName}.svg' downloaded successfully to:\n{customOutputFolder}", 
                     "OK");
                 
                 // Clear after download
@@ -282,6 +288,48 @@ namespace SvgIconFetcher.Window
                 isLoadingCustom = false;
                 Repaint();
             }
+        }
+        
+        private string DetectPackFromUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return null;
+            
+            url = url.ToLower();
+            
+            // Check for known repositories
+            if (url.Contains("lucide-icons/lucide"))
+                return "Lucide";
+            
+            if (url.Contains("tabler/tabler-icons"))
+            {
+                if (url.Contains("/filled"))
+                    return "Tabler Filled";
+                else if (url.Contains("/outline"))
+                    return "Tabler Outline";
+                return "Tabler Outline"; // Default to outline
+            }
+            
+            if (url.Contains("tailwindlabs/heroicons"))
+            {
+                if (url.Contains("/solid"))
+                    return "Heroicons Solid";
+                else if (url.Contains("/outline"))
+                    return "Heroicons Outline";
+                return "Heroicons Outline"; // Default to outline
+            }
+            
+            if (url.Contains("twbs/icons"))
+                return "Bootstrap Icons";
+            
+            if (url.Contains("feathericons/feather"))
+                return "Feather Icons";
+            
+            if (url.Contains("ionic-team/ionicons"))
+                return "Ionicons Outline";
+            
+            // Unknown repository
+            return null;
         }
     }
 }
