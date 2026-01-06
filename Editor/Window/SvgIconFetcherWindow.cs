@@ -15,6 +15,8 @@ namespace SvgIconFetcher.Window
         private string outputFolder = "Assets/Icons";
         private bool isLoading = false;
         private string loadingMessage = "";
+        private bool isDownloading = false;
+        private bool cancelDownload = false;
         
         // Custom URL mode
         private string customUrl = "";
@@ -113,8 +115,17 @@ namespace SvgIconFetcher.Window
             EditorGUILayout.Space();
             outputFolder = EditorGUILayout.TextField("Output Folder", outputFolder);
 
-            if (GUILayout.Button("Download Selected"))
-                DownloadSelected();
+            if (!isDownloading)
+            {
+                if (GUILayout.Button("Download Selected"))
+                    DownloadSelected();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Download in progress... Click 'Cancel' to stop.", MessageType.Warning);
+                if (GUILayout.Button("Cancel Download"))
+                    cancelDownload = true;
+            }
                 
             // Method 2: Custom URL
             EditorGUILayout.Space(20);
@@ -203,34 +214,93 @@ namespace SvgIconFetcher.Window
 
         private async void DownloadSelected()
         {
+            if (isDownloading) return;
+            
+            isDownloading = true;
+            cancelDownload = false;
+            
             var source = IconSourceRegistry.Sources[selectedSourceIndex];
-
-            foreach (var icon in selectedIcons)
+            int totalIcons = selectedIcons.Count;
+            int downloadedCount = 0;
+            int failedCount = 0;
+            
+            // Convert HashSet to List for batch processing
+            var iconList = new List<string>(selectedIcons);
+            
+            // Download icons in parallel (batches of 10 concurrent downloads)
+            const int batchSize = 10;
+            var tasks = new System.Collections.Generic.List<System.Threading.Tasks.Task>();
+            
+            for (int i = 0; i < iconList.Count; i++)
             {
-                try
+                // Check if user cancelled
+                if (cancelDownload)
                 {
-                    var url = $"{source.BaseUrl}/{icon}.svg";
-                    Debug.Log($"Attempting to download: {url}");
-                    
-                    var svg = await SvgDownloader.Download(url);
-                    svg = SvgSanitizer.Sanitize(svg);
-
-                    if (!System.IO.Directory.Exists(outputFolder))
-                        System.IO.Directory.CreateDirectory(outputFolder);
-
-                    var path = System.IO.Path.Combine(outputFolder, $"{icon}.svg");
-                    System.IO.File.WriteAllText(path, svg);
-                    AssetDatabase.ImportAsset(path);
-                    
-                    Debug.Log($"✓ Downloaded: {icon}");
+                    Debug.LogWarning($"Download cancelled by user. Downloaded {downloadedCount} icons before cancellation.");
+                    break;
                 }
-                catch (System.Exception e)
+                
+                var icon = iconList[i];
+                var downloadTask = DownloadIconAsync(source, icon, outputFolder);
+                
+                downloadTask.ContinueWith(task =>
                 {
-                    Debug.LogError($"✗ Failed to download '{icon}': {e.Message}");
+                    if (task.Result)
+                    {
+                        downloadedCount++;
+                        Debug.Log($"✓ Downloaded ({downloadedCount}/{totalIcons}): {icon}");
+                    }
+                    else
+                    {
+                        failedCount++;
+                        Debug.LogError($"✗ Failed ({failedCount} failures): {icon}");
+                    }
+                }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
+                
+                tasks.Add(downloadTask);
+                
+                // Wait for batch to complete before starting next batch
+                if (tasks.Count >= batchSize || i == iconList.Count - 1)
+                {
+                    await System.Threading.Tasks.Task.WhenAll(tasks);
+                    tasks.Clear();
                 }
             }
-
+            
             AssetDatabase.Refresh();
+            
+            if (cancelDownload)
+                Debug.Log($"Download cancelled: {downloadedCount} succeeded, {failedCount} failed, {totalIcons - downloadedCount - failedCount} skipped");
+            else
+                Debug.Log($"Download complete: {downloadedCount} succeeded, {failedCount} failed");
+            
+            isDownloading = false;
+            cancelDownload = false;
+            Repaint();
+        }
+        
+        private async System.Threading.Tasks.Task<bool> DownloadIconAsync(IconSource source, string icon, string folder)
+        {
+            try
+            {
+                var url = $"{source.BaseUrl}/{icon}.svg";
+                var svg = await SvgDownloader.Download(url);
+                svg = SvgSanitizer.Sanitize(svg);
+
+                if (!System.IO.Directory.Exists(folder))
+                    System.IO.Directory.CreateDirectory(folder);
+
+                var path = System.IO.Path.Combine(folder, $"{icon}.svg");
+                System.IO.File.WriteAllText(path, svg);
+                AssetDatabase.ImportAsset(path);
+                
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error downloading '{icon}': {e.Message}");
+                return false;
+            }
         }
         
         private async void DownloadCustomIcon()
