@@ -22,6 +22,16 @@ namespace SvgIconFetcher.Core
             if (!File.Exists(path))
                 return false;
 
+            // Check if cache is older than 1 hour
+            var fileInfo = new FileInfo(path);
+            var cacheAge = System.DateTime.Now - fileInfo.LastWriteTime;
+            if (cacheAge.TotalHours > 1)
+            {
+                // Cache expired, delete it
+                File.Delete(path);
+                return false;
+            }
+
             var json = File.ReadAllText(path);
             icons = JsonUtility.FromJson<IconListWrapper>(json)?.icons;
             return icons != null;

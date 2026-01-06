@@ -33,7 +33,7 @@ In the **"Icon Pack"** dropdown, you can choose from:
 2. You'll see a progress bar during loading
 3. After a few seconds, the list of available icons will appear below
 
-**Note:** The first time you load a package, the tool downloads the list from GitHub. Subsequent times it will use the local cache (much faster!).
+**Note:** The first time you load a package, the tool downloads the list from GitHub. Subsequent times it will use the local cache (much faster!). The cache automatically expires after 1 hour to ensure you always have access to the latest icons.
 
 #### 3. Select Icons
 
@@ -46,8 +46,16 @@ In the **"Icon Pack"** dropdown, you can choose from:
 #### 4. Download Icons
 
 1. Set the destination folder in **"Output Folder"** (default: `Assets/Icons`)
+   - Icons will be automatically organized in subfolders by pack name (e.g., `Assets/Icons/Lucide`, `Assets/Icons/Tabler`)
 2. Click **"Download Selected"**
-3. The icons will be downloaded and automatically imported into your Unity project
+3. The icons will be downloaded in parallel batches of 10 for faster performance
+4. During download:
+   - A progress message will show in the console
+   - You can click **"Cancel Download"** to stop the process at any time
+   - Already downloaded icons will be kept even if you cancel
+5. The icons will be automatically imported into your Unity project
+
+**Note:** The download process can be interrupted at any time. If you change your mind while downloading all icons, click "Cancel Download" and the tool will keep the icons already downloaded but stop downloading the remaining ones.
 
 ### Method 2: Download from Custom URL
 
@@ -67,7 +75,7 @@ This method allows you to download a single icon directly from a GitHub link wit
 3. The tool will automatically:
    - Download the SVG from GitHub
    - Sanitize and process the file
-   - Save it to the output folder
+   - Detect the icon pack from the URL and save to the appropriate folder (e.g., `Assets/Icons/Lucide`)
    - Import it into Unity
 4. A success dialog will confirm the download and show the save location
 5. The URL field will be cleared automatically, ready for the next icon
@@ -82,8 +90,13 @@ This method allows you to download a single icon directly from a GitHub link wit
 ### Clear Cache
 The **"Clear Cache"** button removes the local cache for the selected package.
 
-**When to use it:**
-- You want to update the icon list (if the repository has added new ones)
+**Automatic Cache Expiration:**
+- Cache automatically expires after 1 hour
+- This ensures you always get the latest icons from the repositories
+- Helps stay within GitHub's rate limits while keeping data fresh
+
+**Manual Clear - When to use it:**
+- You want to immediately refresh the icon list (without waiting for the 1-hour expiration)
 - You have problems with corrupted cache
 
 **Note:** After clearing the cache, the next "Load Icons" will download the list from GitHub again.
@@ -152,11 +165,13 @@ All licenses allow commercial use. It's good practice to credit the authors.
 
 ## Tips & Tricks
 
-1. **First time:** Load all 3 packages and cache them for future use
-2. **Organization:** Create different subfolders for each package (e.g., `Assets/Icons/Lucide`, `Assets/Icons/Tabler`)
-3. **Backup:** Cache is located in `Library/SvgIconFetcher/` - you can copy it to other projects
+1. **First time:** Load icon packs and cache them for future use
+2. **Organization:** Icons are automatically organized in subfolders by pack name (e.g., `Assets/Icons/Lucide`, `Assets/Icons/Tabler`)
+3. **Cache:** Icon lists are cached for 1 hour in `Library/SvgIconFetcher/` for faster loading and to stay within API limits
 4. **Custom URLs:** Use the custom URL method to quickly download single icons without browsing entire packs
 5. **Mix and Match:** You can use both methods - browse packs for bulk downloads and custom URLs for specific icons
+6. **Cancel Downloads:** If you start downloading all icons but change your mind, click "Cancel Download" to stop while keeping already downloaded icons
+7. **Parallel Downloads:** Icons are downloaded in batches of 10 simultaneously for faster performance
 
 ## Credits
 
