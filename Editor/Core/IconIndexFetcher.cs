@@ -106,8 +106,20 @@ namespace SvgIconFetcher.Core
                             continue;
                     }
                     
-                    // Extract just the filename without path and extension
-                    var fileName = System.IO.Path.GetFileNameWithoutExtension(item.path);
+                    // Get relative path after removing PathFilter
+                    var relativePath = item.path;
+                    if (!string.IsNullOrEmpty(source.PathFilter))
+                    {
+                        relativePath = relativePath.Substring(source.PathFilter.Length);
+                    }
+                    
+                    // Skip files in subfolders (only include root level icons)
+                    // e.g., skip "test/file.svg", only include "file.svg"
+                    if (relativePath.Contains("/"))
+                        continue;
+                    
+                    // Extract just the filename without extension
+                    var fileName = System.IO.Path.GetFileNameWithoutExtension(relativePath);
                     icons.Add(fileName);
                 }
             }
