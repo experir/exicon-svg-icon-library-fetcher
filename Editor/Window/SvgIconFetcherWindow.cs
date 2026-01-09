@@ -423,6 +423,19 @@ namespace SvgIconFetcher.Window
                 System.IO.File.WriteAllText(path, svg);
                 AssetDatabase.ImportAsset(path);
                 
+                // Try to download license file from the repository
+                var githubInfo = ExtractGitHubInfo(source.BaseUrl);
+                if (githubInfo.HasValue && !System.IO.File.Exists(System.IO.Path.Combine(folder, "LICENSE")))
+                {
+                    var licenseContent = await SvgDownloader.TryDownloadLicense(githubInfo.Value.owner, githubInfo.Value.repo, githubInfo.Value.branch);
+                    if (!string.IsNullOrEmpty(licenseContent))
+                    {
+                        var licensePath = System.IO.Path.Combine(folder, "LICENSE");
+                        System.IO.File.WriteAllText(licensePath, licenseContent);
+                        AssetDatabase.ImportAsset(licensePath);
+                    }
+                }
+                
                 return true;
             }
             catch (System.Exception e)
@@ -469,6 +482,20 @@ namespace SvgIconFetcher.Window
                 var path = System.IO.Path.Combine(customOutputFolder, $"{customIconName}.svg");
                 System.IO.File.WriteAllText(path, customIconPreview);
                 AssetDatabase.ImportAsset(path);
+                
+                // Try to download license file from the repository
+                var githubInfo = ExtractGitHubInfo(customUrl);
+                if (githubInfo.HasValue && !System.IO.File.Exists(System.IO.Path.Combine(customOutputFolder, "LICENSE")))
+                {
+                    var licenseContent = await SvgDownloader.TryDownloadLicense(githubInfo.Value.owner, githubInfo.Value.repo, githubInfo.Value.branch);
+                    if (!string.IsNullOrEmpty(licenseContent))
+                    {
+                        var licensePath = System.IO.Path.Combine(customOutputFolder, "LICENSE");
+                        System.IO.File.WriteAllText(licensePath, licenseContent);
+                        AssetDatabase.ImportAsset(licensePath);
+                    }
+                }
+                
                 AssetDatabase.Refresh();
                 
                 Debug.Log($"Downloaded custom icon: {customIconName} to {customOutputFolder}");
@@ -733,6 +760,18 @@ namespace SvgIconFetcher.Window
                 System.IO.File.WriteAllText(path, svg);
                 AssetDatabase.ImportAsset(path);
                 
+                // Try to download license file from the repository (only once, check if it already exists)
+                if (!System.IO.File.Exists(System.IO.Path.Combine(folder, "LICENSE")))
+                {
+                    var licenseContent = await SvgDownloader.TryDownloadLicense(owner, repo, branch);
+                    if (!string.IsNullOrEmpty(licenseContent))
+                    {
+                        var licensePath = System.IO.Path.Combine(folder, "LICENSE");
+                        System.IO.File.WriteAllText(licensePath, licenseContent);
+                        AssetDatabase.ImportAsset(licensePath);
+                    }
+                }
+                
                 return true;
             }
             catch (System.Exception e)
@@ -777,6 +816,66 @@ namespace SvgIconFetcher.Window
                     if (!string.IsNullOrEmpty(icon))
                         selectedFolderIcons.Add(icon);
                 }
+            }
+        }
+        
+        /// <summary>
+        /// Extract GitHub owner, repo, and branch information from a GitHub URL
+        /// </summary>
+        /// <param name="url">GitHub URL (can be a blob or tree URL)</param>
+        /// <returns>Tuple of (owner, repo, branch) or null if not a valid GitHub URL</returns>
+        private (string owner, string repo, string branch)? ExtractGitHubInfo(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return null;
+            
+            try
+            {
+                // Handle both github.com and raw.githubusercontent.com URLs
+                var uri = new System.Uri(url);
+                if (!uri.Host.Contains("github.com") && !uri.Host.Contains("githubusercontent.com"))
+                    return null;
+                
+                var pathSegments = uri.AbsolutePath.Split('/');
+                
+                // Expected formats:
+                // github.com: /owner/repo/blob/branch/... or /owner/repo/tree/branch/...
+                // githubusercontent.com: /owner/repo/branch/...
+                
+                if (pathSegments.Length < 3)
+                    return null;
+                
+                string owner = pathSegments[1];
+                string repo = pathSegments[2];
+                string branch = "main"; // Default branch
+                
+                if (uri.Host.Contains("raw.githubusercontent.com"))
+                {
+                    // Format: /owner/repo/branch/...
+                    if (pathSegments.Length >= 4)
+                        branch = pathSegments[3];
+                }
+                else
+                {
+                    // Format: /owner/repo/blob/branch/... or /owner/repo/tree/branch/...
+                    for (int i = 3; i < pathSegments.Length; i++)
+                    {
+                        if (pathSegments[i] == "blob" || pathSegments[i] == "tree")
+                        {
+                            if (i + 1 < pathSegments.Length)
+                            {
+                                branch = pathSegments[i + 1];
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                return (owner, repo, branch);
+            }
+            catch
+            {
+                return null;
             }
         }
     }
