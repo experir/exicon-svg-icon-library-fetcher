@@ -59,18 +59,17 @@ In the **"Icon Pack"** dropdown, you can choose from:
 
 ### Method 2: Download from Custom URL
 
-This method allows you to download a single icon directly from a GitHub link with just one click.
+This method allows you to download a single icon or an entire folder of icons directly from a GitHub link with just a few clicks.
 
-#### 1. Get the Icon URL
+#### 2A: Single Icon Download
 
 1. Navigate to an SVG icon on GitHub (e.g., browse Lucide, Tabler, or any GitHub repository with SVG icons)
 2. Copy the URL from your browser
    - Example: `https://github.com/lucide-icons/lucide/blob/main/icons/heart.svg`
    - The URL should end with `.svg`
 
-#### 2. Download the Icon
-
-1. Paste the URL in the **"Icon URL"** field
+**To download:**
+1. Paste the URL in the **"URL"** field
 2. Click **"Download Icon"**
 3. The tool will automatically:
    - Download the SVG from GitHub
@@ -84,6 +83,35 @@ This method allows you to download a single icon directly from a GitHub link wit
 - Direct GitHub links (blob URLs are automatically converted to raw URLs)
 - Raw GitHub content URLs
 - Any publicly accessible SVG file URL
+
+#### 2B: Entire Folder Download (NEW)
+
+Download multiple icons at once from a GitHub folder!
+
+1. Navigate to a folder containing SVG icons on GitHub
+   - Example: `https://github.com/tabler/tabler-icons/tree/main/icons/filled`
+2. Copy the GitHub folder URL from your browser (make sure it contains `/tree/`)
+3. Paste it in the **"URL"** field
+4. Click **"Load Folder Contents"** - the tool will:
+   - Fetch all SVG files in that folder from GitHub
+   - Display a list of all icons found
+5. Select which icons you want to download (use "Select All" for convenience)
+6. Optionally customize the **"Output Subfolder Name"** (defaults to the folder name)
+7. Click **"Download Selected"** to download your chosen icons in parallel
+
+**Supported Folder URLs:**
+- GitHub browser URLs with `/tree/` in the path
+- Works with any public GitHub repository
+- Example formats:
+  - `https://github.com/tabler/tabler-icons/tree/main/icons/filled`
+  - `https://github.com/lucide-icons/lucide/tree/main/icons`
+  - `https://github.com/your-org/your-repo/tree/branch/path/to/icons`
+
+**Benefits:**
+- Download 10+ icons in seconds with parallel downloading
+- Selective download - choose only the icons you need
+- Automatic folder organization - icons are saved with the folder's name
+- No manual file selection required
 
 ## Cache Management
 
@@ -119,6 +147,7 @@ GitHub allows 60 API requests per hour without authentication.
 ### Performance
 - **First request:** 1-2 seconds (download from GitHub)
 - **Subsequent requests:** Instant (uses cache)
+- **Folder download:** Depends on number of icons (10 icons in ~2-3 seconds with parallel downloading)
 
 ## Licenses
 
@@ -152,9 +181,18 @@ All licenses allow commercial use. It's good practice to credit the authors.
 ### Custom URL doesn't work
 - **Cause:** Invalid URL or inaccessible file
 - **Solution:** 
-  - Make sure the URL ends with `.svg`
-  - Verify the file is publicly accessible
-  - Try copying the URL directly from the GitHub file page
+  - For single icons: Make sure the URL ends with `.svg`
+  - For folders: Make sure the URL contains `/tree/` (not `/blob/`)
+  - Verify the file/folder is publicly accessible
+  - Try copying the URL directly from the GitHub page
+
+### Folder URL not recognized
+- **Cause:** URL doesn't contain `/tree/` (it's a file URL, not a folder URL)
+- **Solution:** 
+  - Navigate to a folder in GitHub (not a file)
+  - Copy the folder URL from the browser
+  - Make sure the URL contains `/tree/branch-name/path`
+  - Example: `https://github.com/tabler/tabler-icons/tree/main/icons/filled`
 
 ### "Failed to load icon from URL"
 - **Cause:** Network issue or invalid URL format
@@ -168,15 +206,12 @@ All licenses allow commercial use. It's good practice to credit the authors.
 1. **First time:** Load icon packs and cache them for future use
 2. **Organization:** Icons are automatically organized in subfolders by pack name (e.g., `Assets/Icons/Lucide`, `Assets/Icons/Tabler`)
 3. **Cache:** Icon lists are cached for 1 hour in `Library/SvgIconFetcher/` for faster loading and to stay within API limits
-4. **Custom URLs:** Use the custom URL method to quickly download single icons without browsing entire packs
-5. **Mix and Match:** You can use both methods - browse packs for bulk downloads and custom URLs for specific icons
-6. **Cancel Downloads:** If you start downloading all icons but change your mind, click "Cancel Download" to stop while keeping already downloaded icons
-7. **Parallel Downloads:** Icons are downloaded in batches of 10 simultaneously for faster performance
-
-## Credits
-
-- **Lucide Icons:** https://lucide.dev
-- **Tabler Icons:** https://tabler.io/icons
+4. **Custom URLs:** Use the custom URL method to quickly download single icons or entire folders without browsing entire packs
+5. **Folder Downloads:** Copy a GitHub folder URL (with `/tree/`) and download all icons at once - perfect for getting a subset of a larger icon pack
+6. **Mix and Match:** You can use all three methods - browse full packs, download single icons, or download custom folders
+7. **Cancel Downloads:** If you start downloading icons but change your mind, click "Cancel Download" to stop while keeping already downloaded icons
+8. **Parallel Downloads:** Icons are downloaded in batches of 10 simultaneously for faster performance
+9. **Custom Subfolder Names:** When downloading folders, customize the output folder name to organize your icons however you like
 - **Heroicons:** https://heroicons.com
 - **Bootstrap Icons:** https://icons.getbootstrap.com
 - **Feather Icons:** https://feathericons.com
