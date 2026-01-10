@@ -3,6 +3,16 @@
 ## Overview
 SVG Icon Fetcher is a Unity tool that allows you to easily download and import SVG icons from public repositories like Lucide and Tabler Icons.
 
+## System Requirements
+
+**Unity Version:** Unity 6.0 or later
+
+**SVG Rendering Support:**
+- **Unity 6.3+**: Built-in SVG support
+- **Earlier versions** (pre-6.3): Use the [`com.unity.vectorgraphics`](https://docs.unity3d.com/Packages/com.unity.vectorgraphics@latest) package for SVG support
+
+**Note:** SVG icons require Vector Graphics support to render properly in the editor and at runtime. Make sure you have the appropriate module or package installed for your Unity version.
+
 ## Opening the Tool
 
 1. In Unity's menu, go to: **Tools > SVG Icon Fetcher**
