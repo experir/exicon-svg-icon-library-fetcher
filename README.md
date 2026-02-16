@@ -1,5 +1,8 @@
 # Exicon - SVG Icon Fetcher
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Unity 6+](https://img.shields.io/badge/Unity-6000.0%2B-black.svg)](https://unity.com)
+
 A Unity Editor tool to browse, search, and download SVG icons from popular open-source icon libraries — directly into your project.
 
 > **No icons are bundled.** Icons are downloaded on-demand from their original open-source repositories. Users are responsible for respecting each library's license.
