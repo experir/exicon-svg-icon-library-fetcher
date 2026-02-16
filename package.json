@@ -1,0 +1,28 @@
+{
+  "name": "com.experir.exicon",
+  "version": "1.0.0",
+  "displayName": "Exicon - SVG Icon Fetcher",
+  "description": "Browse, search, and download SVG icons from popular open-source icon libraries directly into your Unity project.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Experir",
+    "url": "https://github.com/experir"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/experir/exicon-svg-icon-library-fetcher.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "svg",
+    "icons",
+    "editor",
+    "tools",
+    "lucide",
+    "tabler",
+    "heroicons",
+    "bootstrap-icons",
+    "feather",
+    "ionicons"
+  ]
+}
