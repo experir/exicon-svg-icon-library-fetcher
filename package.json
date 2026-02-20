@@ -2,7 +2,7 @@
   "name": "com.experir.exicon",
   "version": "1.0.0",
   "displayName": "Exicon - SVG Icon Fetcher",
-  "description": "Browse, search, and download SVG icons from popular open-source icon libraries directly into your Unity project.",
+  "description": "Browse, search, and download SVG icons from popular open-source icon libraries directly into your Unity project. This asset references Lucide (ISC), Tabler Icons, Heroicons, Bootstrap Icons, Feather Icons, Ionicons, Phosphor Icons, Octicons, and Iconoir (all MIT); see Third-Party Notices.txt file in package for details.",
   "unity": "6000.0",
   "author": {
     "name": "Experir",

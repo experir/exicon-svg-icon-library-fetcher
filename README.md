@@ -87,4 +87,22 @@ Contributions are welcome! Feel free to open issues and pull requests.
 
 This project is licensed under the [MIT License](LICENSE).
 
-**Icon licenses:** Each icon library has its own license (ISC or MIT). The tool automatically downloads the license file alongside icons. Always verify the license of the icons you use in your project.
+## Third-Party Notices
+
+This asset references the following open-source icon libraries, which are downloaded on-demand (no icons are bundled):
+
+| Library | License |
+|---|---|
+| Lucide | ISC |
+| Tabler Icons | MIT |
+| Heroicons | MIT |
+| Bootstrap Icons | MIT |
+| Feather Icons | MIT |
+| Ionicons | MIT |
+| Phosphor Icons | MIT |
+| Octicons | MIT |
+| Iconoir | MIT |
+
+This asset uses Lucide under ISC license and Tabler Icons, Heroicons, Bootstrap Icons, Feather Icons, Ionicons, Phosphor Icons, Octicons, and Iconoir under MIT license; see [Third-Party Notices.txt](Third-Party%20Notices.txt) file in package for details.
+
+The tool automatically downloads each library's license file alongside icons. Always verify the license of the icons you use in your project.

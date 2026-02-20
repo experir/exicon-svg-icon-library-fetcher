@@ -26,6 +26,10 @@ namespace SvgIconFetcher.Window
         private bool isLoadingCustom = false;
         private Vector2 customPreviewScroll;
         
+        // Search filters
+        private string searchFilter = "";
+        private string folderSearchFilter = "";
+        
         // Folder mode
         private List<string> folderIcons = new();
         private HashSet<string> selectedFolderIcons = new();
@@ -86,28 +90,34 @@ namespace SvgIconFetcher.Window
             }
 
             EditorGUILayout.Space(10);
+            
+            // Build filtered list
+            List<string> filteredIcons = icons;
+            if (!string.IsNullOrEmpty(searchFilter))
+            {
+                filteredIcons = icons.FindAll(i => i.IndexOf(searchFilter, System.StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+            
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Icons", EditorStyles.boldLabel);
             
             // Select All / Deselect All toggle
             if (icons.Count > 0)
             {
-                bool allSelected = selectedIcons.Count == icons.Count;
+                bool allSelected = filteredIcons.Count > 0 && filteredIcons.TrueForAll(i => selectedIcons.Contains(i));
                 bool newAllSelected = EditorGUILayout.ToggleLeft("Select All", allSelected, GUILayout.Width(100));
                 
                 if (newAllSelected != allSelected)
                 {
                     if (newAllSelected)
                     {
-                        // Select all
-                        selectedIcons.Clear();
-                        foreach (var icon in icons)
+                        foreach (var icon in filteredIcons)
                             selectedIcons.Add(icon);
                     }
                     else
                     {
-                        // Deselect all
-                        selectedIcons.Clear();
+                        foreach (var icon in filteredIcons)
+                            selectedIcons.Remove(icon);
                     }
                 }
             }
@@ -118,9 +128,23 @@ namespace SvgIconFetcher.Window
             {
                 EditorGUILayout.HelpBox("Downloading all icons may take some time. Consider selecting only the ones you need.", MessageType.Info);
             }
+            
+            // Search bar
+            if (icons.Count > 0)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Search", GUILayout.Width(50));
+                searchFilter = EditorGUILayout.TextField(searchFilter);
+                if (GUILayout.Button("✕", GUILayout.Width(22)))
+                    searchFilter = "";
+                EditorGUILayout.EndHorizontal();
+                
+                if (!string.IsNullOrEmpty(searchFilter))
+                    EditorGUILayout.LabelField($"Showing {filteredIcons.Count} of {icons.Count} icons", EditorStyles.miniLabel);
+            }
 
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(250));
-            foreach (var icon in icons)
+            foreach (var icon in filteredIcons)
             {
                 bool selected = selectedIcons.Contains(icon);
                 bool newSelected = EditorGUILayout.ToggleLeft(icon, selected);
@@ -163,12 +187,12 @@ namespace SvgIconFetcher.Window
             // Show appropriate UI based on URL type
             if (!string.IsNullOrEmpty(customUrl) && IsFolderUrl(customUrl))
             {
-                EditorGUILayout.HelpBox("✓ Cartella rilevata! Clicca il bottone sottostante per caricare le icone.", MessageType.Info);
+                EditorGUILayout.HelpBox("✓ Folder detected! Click the button below to load the icons.", MessageType.Info);
                 DrawFolderModeUI();
             }
             else if (!string.IsNullOrEmpty(customUrl))
             {
-                EditorGUILayout.HelpBox("✓ File singolo rilevato! Usa il bottone sottostante.", MessageType.Info);
+                EditorGUILayout.HelpBox("✓ Single file detected! Use the button below.", MessageType.Info);
                 DrawSingleIconModeUI();
             }
             else
@@ -211,7 +235,7 @@ namespace SvgIconFetcher.Window
             
             // Load folder contents button with prominent styling
             EditorGUILayout.LabelField("Step 1: Load Folder", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("Clicca il bottone per caricare la lista di icone dalla cartella", MessageType.Info);
+            EditorGUILayout.HelpBox("Click the button to load the list of icons from the folder.", MessageType.Info);
             
             EditorGUI.BeginDisabledGroup(isLoadingFolder);
             if (GUILayout.Button(isLoadingFolder ? "Loading..." : "Load Folder Contents", GUILayout.Height(35)))
@@ -234,29 +258,47 @@ namespace SvgIconFetcher.Window
                 EditorGUILayout.LabelField("Step 2: Select Icons", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox($"Found {folderIcons.Count} SVG files", MessageType.Info);
                 
+                // Build filtered folder list
+                List<string> filteredFolderIcons = folderIcons;
+                if (!string.IsNullOrEmpty(folderSearchFilter))
+                {
+                    filteredFolderIcons = folderIcons.FindAll(i => i.IndexOf(folderSearchFilter, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+                
                 // Select All / Deselect All
                 EditorGUILayout.BeginHorizontal();
-                bool allSelected = selectedFolderIcons.Count == folderIcons.Count;
+                bool allSelected = filteredFolderIcons.Count > 0 && filteredFolderIcons.TrueForAll(i => selectedFolderIcons.Contains(i));
                 bool newAllSelected = EditorGUILayout.ToggleLeft("Select All", allSelected, GUILayout.Width(100));
                 
                 if (newAllSelected != allSelected)
                 {
                     if (newAllSelected)
                     {
-                        selectedFolderIcons.Clear();
-                        foreach (var icon in folderIcons)
+                        foreach (var icon in filteredFolderIcons)
                             selectedFolderIcons.Add(icon);
                     }
                     else
                     {
-                        selectedFolderIcons.Clear();
+                        foreach (var icon in filteredFolderIcons)
+                            selectedFolderIcons.Remove(icon);
                     }
                 }
                 EditorGUILayout.EndHorizontal();
                 
+                // Search bar
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Search", GUILayout.Width(50));
+                folderSearchFilter = EditorGUILayout.TextField(folderSearchFilter);
+                if (GUILayout.Button("✕", GUILayout.Width(22)))
+                    folderSearchFilter = "";
+                EditorGUILayout.EndHorizontal();
+                
+                if (!string.IsNullOrEmpty(folderSearchFilter))
+                    EditorGUILayout.LabelField($"Showing {filteredFolderIcons.Count} of {folderIcons.Count} icons", EditorStyles.miniLabel);
+                
                 // Icon list
                 folderScroll = EditorGUILayout.BeginScrollView(folderScroll, GUILayout.Height(200));
-                foreach (var icon in folderIcons)
+                foreach (var icon in filteredFolderIcons)
                 {
                     bool selected = selectedFolderIcons.Contains(icon);
                     bool newSelected = EditorGUILayout.ToggleLeft(icon, selected);
