@@ -25,6 +25,8 @@ namespace SvgIconFetcher.Window
         private string customIconName = "";
         private bool isLoadingCustom = false;
         private Vector2 customPreviewScroll;
+        private string customResultMessage = "";
+        private MessageType customResultType = MessageType.None;
         
         // Search filters
         private string searchFilter = "";
@@ -41,10 +43,11 @@ namespace SvgIconFetcher.Window
         private bool cancelFolderDownload = false;
         private string folderOutputName = "";
 
-        [MenuItem("Tools/SVG Icon Fetcher")]
+        [MenuItem("Tools/Exicon - SVG Icon Fetcher")]
         public static void Open()
         {
-            GetWindow<SvgIconFetcherWindow>("SVG Icon Fetcher");
+            var window = GetWindow<SvgIconFetcherWindow>("Exicon - SVG Icon Fetcher");
+            window.minSize = new Vector2(400, 600);
         }
 
         private void OnEnable()
@@ -56,8 +59,6 @@ namespace SvgIconFetcher.Window
         private void OnGUI()
         {
             mainScroll = EditorGUILayout.BeginScrollView(mainScroll);
-            
-            EditorGUILayout.LabelField("SVG Icon Fetcher", EditorStyles.boldLabel);
             
             // Method 1: Icon Packs
             EditorGUILayout.Space(5);
@@ -136,7 +137,10 @@ namespace SvgIconFetcher.Window
                 EditorGUILayout.LabelField("Search", GUILayout.Width(50));
                 searchFilter = EditorGUILayout.TextField(searchFilter);
                 if (GUILayout.Button("✕", GUILayout.Width(22)))
+                {
                     searchFilter = "";
+                    GUI.FocusControl(null);
+                }
                 EditorGUILayout.EndHorizontal();
                 
                 if (!string.IsNullOrEmpty(searchFilter))
@@ -210,19 +214,11 @@ namespace SvgIconFetcher.Window
                 DownloadCustomIcon();
             EditorGUI.EndDisabledGroup();
             
-            // Show preview after download
-            if (!string.IsNullOrEmpty(customIconPreview))
+            // Show result message after download
+            if (!string.IsNullOrEmpty(customResultMessage))
             {
                 EditorGUILayout.Space(5);
-                EditorGUILayout.LabelField($"Preview: {customIconName}", EditorStyles.boldLabel);
-                
-                // Show SVG code preview in a scrollable text area
-                EditorGUILayout.LabelField("SVG Code:", EditorStyles.miniLabel);
-                customPreviewScroll = EditorGUILayout.BeginScrollView(customPreviewScroll, GUILayout.Height(150));
-                EditorGUILayout.TextArea(customIconPreview, GUILayout.ExpandHeight(true));
-                EditorGUILayout.EndScrollView();
-                
-                EditorGUILayout.HelpBox("Icon loaded successfully! Click 'Download Icon' to save it.", MessageType.Info);
+                EditorGUILayout.HelpBox(customResultMessage, customResultType);
             }
         }
 
@@ -290,7 +286,10 @@ namespace SvgIconFetcher.Window
                 EditorGUILayout.LabelField("Search", GUILayout.Width(50));
                 folderSearchFilter = EditorGUILayout.TextField(folderSearchFilter);
                 if (GUILayout.Button("✕", GUILayout.Width(22)))
+                {
                     folderSearchFilter = "";
+                    GUI.FocusControl(null);
+                }
                 EditorGUILayout.EndHorizontal();
                 
                 if (!string.IsNullOrEmpty(folderSearchFilter))
@@ -414,7 +413,7 @@ namespace SvgIconFetcher.Window
                 var icon = iconList[i];
                 var downloadTask = DownloadIconAsync(source, icon, outputFolder);
                 
-                downloadTask.ContinueWith(task =>
+                _ = downloadTask.ContinueWith(task =>
                 {
                     if (task.Result)
                     {
@@ -495,6 +494,8 @@ namespace SvgIconFetcher.Window
             isLoadingCustom = true;
             customIconPreview = "";
             customIconName = "";
+            customResultMessage = "";
+            customResultType = MessageType.None;
             
             try
             {
@@ -541,21 +542,13 @@ namespace SvgIconFetcher.Window
                 AssetDatabase.Refresh();
                 
                 Debug.Log($"Downloaded custom icon: {customIconName} to {customOutputFolder}");
-                EditorUtility.DisplayDialog("Success", 
-                    $"Icon '{customIconName}.svg' downloaded successfully to:\n{customOutputFolder}", 
-                    "OK");
-                
-                // Clear after download
-                customUrl = "";
-                customIconPreview = "";
-                customIconName = "";
+                customResultMessage = $"✓ Icon '{customIconName}.svg' downloaded successfully to:\n{customOutputFolder}";
+                customResultType = MessageType.Info;
             }
             catch (System.Exception e)
             {
-                EditorUtility.DisplayDialog("Error", 
-                    $"Failed to download icon:\n{e.Message}\n\n" +
-                    "Make sure the URL is a direct link to an SVG file on GitHub.", 
-                    "OK");
+                customResultMessage = $"Failed to download icon:\n{e.Message}\n\nMake sure the URL is a direct link to an SVG file on GitHub.";
+                customResultType = MessageType.Error;
             }
             finally
             {
@@ -744,7 +737,7 @@ namespace SvgIconFetcher.Window
                 var icon = iconList[i];
                 var downloadTask = DownloadFolderIconAsync(owner, repo, branch, folderPath, icon, outputFolder);
 
-                downloadTask.ContinueWith(task =>
+                _ = downloadTask.ContinueWith(task =>
                 {
                     if (task.Result)
                     {

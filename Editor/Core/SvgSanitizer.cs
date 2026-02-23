@@ -10,9 +10,6 @@ namespace SvgIconFetcher.Core
                 return svg;
 
             svg = Regex.Replace(svg, @"currentColor", "#000000", RegexOptions.IgnoreCase);
-            svg = Regex.Replace(svg, @"style\s*=\s*""[^""]*""", "", RegexOptions.IgnoreCase);
-            svg = Regex.Replace(svg, @"stroke-linecap\s*=\s*""[^""]*""", "", RegexOptions.IgnoreCase);
-            svg = Regex.Replace(svg, @"stroke-linejoin\s*=\s*""[^""]*""", "", RegexOptions.IgnoreCase);
             svg = Regex.Replace(svg, @"crossorigin(\s*=\s*""[^""]*"")?", "", RegexOptions.IgnoreCase);
             svg = Regex.Replace(svg, @"<!--.*?-->", "", RegexOptions.Singleline);
 
