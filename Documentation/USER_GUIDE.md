@@ -1,7 +1,7 @@
 # SVG Icon Fetcher - User Guide
 
 ## Overview
-SVG Icon Fetcher is a Unity tool that allows you to easily download and import SVG icons from public repositories like Lucide and Tabler Icons.
+SVG Icon Fetcher is a Unity tool that allows you to easily download and import SVG icons from public repositories like Lucide and Tabler Icons. It optionally converts them to PNG sprites and lets you recolor icons on the fly.
 
 ## System Requirements
 
@@ -123,6 +123,61 @@ Download multiple icons at once from a GitHub folder!
 - Automatic folder organization - icons are saved with the folder's name
 - No manual file selection required
 
+## PNG Export (Optional)
+
+Convert downloaded SVGs into PNG sprite assets — useful when you need rasterized icons for UI, particles, or any context where vector rendering isn't available.
+
+### Requirements
+
+PNG export requires Unity Vector Graphics:
+- **Unity 6.3+** — built-in module, nothing to install
+- **Earlier versions** — install [`com.unity.vectorgraphics`](https://docs.unity3d.com/Packages/com.unity.vectorgraphics@latest) via **Window > Package Manager > + > Add package by name** → `com.unity.vectorgraphics`
+
+When Vector Graphics is not detected, the PNG options are hidden and an info box explains how to enable them.
+
+### How to Use
+
+1. In the **Export Options** section of the tool window, check **Export as PNG**
+2. Choose a **PNG Size** from the dropdown (32×32 to 1024×1024, default 256×256)
+3. Download icons normally — a `.png` file is saved alongside each `.svg`
+
+### PNG Import Settings
+
+PNGs are automatically configured with:
+- **Texture Type:** Sprite (2D and UI)
+- **Sprite Mode:** Single
+- **Alpha Is Transparency:** Enabled
+
+This means they're ready to use in Unity UI immediately.
+
+## Color Override
+
+Recolor all icons to a single custom color on download — perfect for matching your UI theme.
+
+### How to Use
+
+1. In the **Export Options** section, check **Override Color**
+2. Click the color swatch to open the Unity color picker and choose your color
+3. Download icons — both the `.svg` file and the `.png` (if enabled) will use the overridden color
+
+### How It Works
+
+The color override replaces `fill` and `stroke` attributes in the SVG source before saving. It handles:
+- Named colors and hex values (`fill="#000"`, `stroke="#333333"`)
+- The `currentColor` keyword
+- Inline style attributes (`style="fill:#000"`)
+- Preserves `fill="none"` / `stroke="none"` (transparent areas stay transparent)
+
+**Tip:** The override affects the saved SVG file itself, so the color is baked in. If you need the same icon in multiple colors, download it once per color with different output folders.
+
+## Inline Notifications
+
+All status messages (cache cleared, errors, warnings) appear as **inline banners** directly inside the tool window — no popup dialogs that steal focus.
+
+- Notifications auto-dismiss after **5 seconds**
+- Click the **×** button to dismiss immediately
+- Color-coded by type: blue (info), yellow (warning), red (error)
+
 ## Cache Management
 
 ### Clear Cache
@@ -204,6 +259,19 @@ All licenses allow commercial use. It's good practice to credit the authors.
   - Make sure the URL contains `/tree/branch-name/path`
   - Example: `https://github.com/tabler/tabler-icons/tree/main/icons/filled`
 
+### PNG export option not visible
+- **Cause:** Unity Vector Graphics is not installed / not detected
+- **Solution:**
+  - **Unity 6.3+**: Vector Graphics is built-in — if the option still doesn't appear, reimport the Exicon package (right-click → Reimport)
+  - **Earlier versions**: Install `com.unity.vectorgraphics` via Package Manager → Add package by name
+
+### PNG files are blank or black
+- **Cause:** SVG content could not be parsed or tessellated
+- **Solution:**
+  - Check the Unity Console for "SVG→PNG conversion error" messages
+  - Ensure the SVG file is valid and not empty
+  - Some complex SVGs with gradients or filters may not convert correctly
+
 ### "Failed to load icon from URL"
 - **Cause:** Network issue or invalid URL format
 - **Solution:**
@@ -222,6 +290,9 @@ All licenses allow commercial use. It's good practice to credit the authors.
 7. **Cancel Downloads:** If you start downloading icons but change your mind, click "Cancel Download" to stop while keeping already downloaded icons
 8. **Parallel Downloads:** Icons are downloaded in batches of 10 simultaneously for faster performance
 9. **Custom Subfolder Names:** When downloading folders, customize the output folder name to organize your icons however you like
+10. **PNG for UI:** Enable PNG export when you need icons in Unity UI (Image components) without Vector Graphics at runtime
+11. **Themed Icons:** Use the Color Override to download an entire icon pack matched to your game's color scheme
+12. **Multiple Colors:** Download the same pack multiple times with different color overrides into separate folders for a multi-color icon set
 - **Heroicons:** https://heroicons.com
 - **Bootstrap Icons:** https://icons.getbootstrap.com
 - **Feather Icons:** https://feathericons.com

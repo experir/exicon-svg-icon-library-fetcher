@@ -12,6 +12,8 @@ A Unity Editor tool to browse, search, and download SVG icons from popular open-
 - **Browse 11 icon packs** — Lucide, Tabler, Heroicons, Bootstrap Icons, Feather, Ionicons, Phosphor, Octicons, Iconoir, and more
 - **Custom URL download** — paste any GitHub SVG link to download a single icon
 - **Folder import** — paste a GitHub folder URL to batch-download all SVGs inside it
+- **PNG export** — optionally convert SVGs to PNG sprites at configurable sizes (32×32 to 1024×1024)
+- **Color override** — recolor all icons on download to a single custom color
 - **Select All / individual selection** — pick exactly the icons you need
 - **Parallel downloads** — icons download in batches of 10 for speed
 - **Cancellation** — stop a download at any time; already-fetched icons are kept
@@ -19,6 +21,7 @@ A Unity Editor tool to browse, search, and download SVG icons from popular open-
 - **SVG sanitization** — cleans SVGs for Unity compatibility (`currentColor` → `#000000`, strips unsupported attributes)
 - **1-hour cache** — minimizes GitHub API usage (60 req/hour unauthenticated limit)
 - **Auto-organization** — icons are saved in subfolders by pack name
+- **Non-intrusive UI** — status messages appear inline in the tool window (no popup dialogs)
 
 ## Requirements
 
@@ -50,9 +53,18 @@ git clone https://github.com/experir/exicon-svg-icon-library-fetcher.git Assets/
 1. In Unity, go to **Tools > SVG Icon Fetcher**
 2. Choose an icon pack from the dropdown, or paste a GitHub URL
 3. Click **Load Icons** to fetch the list
-4. Select the icons you want and click **Download Selected**
+4. *(Optional)* Enable **Export as PNG** and choose a size, or set a **Color Override**
+5. Select the icons you want and click **Download Selected**
 
 Icons are saved to `Assets/Icons/<PackName>/` by default.
+
+### PNG Export (optional)
+
+Requires **Unity Vector Graphics**:
+- **Unity 6.3+** — built-in, no action needed
+- **Earlier versions** — install [`com.unity.vectorgraphics`](https://docs.unity3d.com/Packages/com.unity.vectorgraphics@latest) via Package Manager
+
+When enabled, a `.png` sprite is saved alongside each `.svg`. PNGs are imported as **Sprite (Single)** with **Alpha Is Transparency** enabled.
 
 ## Supported Icon Packs
 
