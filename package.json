@@ -23,5 +23,6 @@
     "bootstrap-icons",
     "feather",
     "ionicons"
-  ]
+  ],
+  "dependencies": {}
 }

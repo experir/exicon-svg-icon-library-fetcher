@@ -43,6 +43,23 @@ namespace SvgIconFetcher.Window
         private bool cancelFolderDownload = false;
         private string folderOutputName = "";
 
+        // PNG export options
+#if EXICON_VECTORGRAPHICS
+        private bool exportAsPng = false;
+        private int pngSizeIndex = 3;
+        private readonly int[] pngSizes = { 32, 64, 128, 256, 512, 1024 };
+        private readonly string[] pngSizeLabels = { "32×32", "64×64", "128×128", "256×256", "512×512", "1024×1024" };
+#endif
+
+        // Color override
+        private bool overrideColor = false;
+        private Color overrideColorValue = Color.white;
+
+        // Inline notification (replaces popup dialogs)
+        private string notificationMessage = "";
+        private MessageType notificationType = MessageType.Info;
+        private double notificationExpireTime = 0;
+
         [MenuItem("Tools/Exicon - SVG Icon Fetcher")]
         public static void Open()
         {
@@ -54,6 +71,17 @@ namespace SvgIconFetcher.Window
         {
             // Load saved folder state when window opens
             LoadFolderState();
+
+            // Load PNG export preferences
+#if EXICON_VECTORGRAPHICS
+            exportAsPng = EditorPrefs.GetBool("SvgIconFetcher_ExportAsPng", false);
+            pngSizeIndex = EditorPrefs.GetInt("SvgIconFetcher_PngSizeIndex", 3);
+#endif
+
+            // Load color override preferences
+            overrideColor = EditorPrefs.GetBool("SvgIconFetcher_OverrideColor", false);
+            if (ColorUtility.TryParseHtmlString(EditorPrefs.GetString("SvgIconFetcher_OverrideColorHex", "#FFFFFF"), out var saved))
+                overrideColorValue = saved;
         }
 
         private void OnGUI()
@@ -79,6 +107,9 @@ namespace SvgIconFetcher.Window
                 ClearCache();
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndHorizontal();
+
+            // Inline notification banner
+            DrawNotification();
 
             // Loading indicator
             if (isLoading)
@@ -162,6 +193,7 @@ namespace SvgIconFetcher.Window
 
             EditorGUILayout.Space();
             outputFolder = EditorGUILayout.TextField("Output Folder", outputFolder);
+            DrawPngExportOptions();
 
             if (!isDownloading)
             {
@@ -209,6 +241,7 @@ namespace SvgIconFetcher.Window
 
         private void DrawSingleIconModeUI()
         {
+            DrawPngExportOptions();
             EditorGUI.BeginDisabledGroup(isLoadingCustom || string.IsNullOrEmpty(customUrl));
             if (GUILayout.Button(isLoadingCustom ? "Downloading..." : "Download Icon"))
                 DownloadCustomIcon();
@@ -315,6 +348,7 @@ namespace SvgIconFetcher.Window
                 // Output folder and download
                 folderOutputName = EditorGUILayout.TextField("Output Subfolder Name", folderOutputName);
                 EditorGUILayout.HelpBox("Icons will be saved to: Assets/Icons/" + (string.IsNullOrEmpty(folderOutputName) ? "[folder name]" : folderOutputName), MessageType.Info);
+                DrawPngExportOptions();
                 
                 if (!isDownloadingFolder)
                 {
@@ -329,6 +363,82 @@ namespace SvgIconFetcher.Window
                 }
             }
         }
+
+        private void DrawPngExportOptions()
+        {
+#if EXICON_VECTORGRAPHICS
+            EditorGUILayout.BeginHorizontal();
+            bool newExportAsPng = EditorGUILayout.Toggle("Also Export as PNG", exportAsPng);
+            if (newExportAsPng != exportAsPng)
+            {
+                exportAsPng = newExportAsPng;
+                EditorPrefs.SetBool("SvgIconFetcher_ExportAsPng", exportAsPng);
+            }
+            EditorGUI.BeginDisabledGroup(!exportAsPng);
+            int newSizeIndex = EditorGUILayout.Popup(pngSizeIndex, pngSizeLabels);
+            if (newSizeIndex != pngSizeIndex)
+            {
+                pngSizeIndex = newSizeIndex;
+                EditorPrefs.SetInt("SvgIconFetcher_PngSizeIndex", pngSizeIndex);
+            }
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.EndHorizontal();
+#else
+            EditorGUILayout.HelpBox(
+                "PNG export requires the com.unity.vectorgraphics package.\n" +
+                "• Unity < 6.3: install com.unity.vectorgraphics 2.0.0-preview.21\n" +
+                "• Unity ≥ 6.3: install com.unity.vectorgraphics 3.0.0-pre.2\n\n" +
+                "Add it via Window → Package Manager → + → Add by name.",
+                MessageType.Info);
+#endif
+
+            // Color override (applies to SVG content before saving; affects PNG too)
+            EditorGUILayout.BeginHorizontal();
+            bool newOverrideColor = EditorGUILayout.Toggle("Override Color", overrideColor);
+            if (newOverrideColor != overrideColor)
+            {
+                overrideColor = newOverrideColor;
+                EditorPrefs.SetBool("SvgIconFetcher_OverrideColor", overrideColor);
+            }
+            EditorGUI.BeginDisabledGroup(!overrideColor);
+            Color newColor = EditorGUILayout.ColorField(GUIContent.none, overrideColorValue, false, false, false);
+            if (newColor != overrideColorValue)
+            {
+                overrideColorValue = newColor;
+                EditorPrefs.SetString("SvgIconFetcher_OverrideColorHex", "#" + ColorUtility.ToHtmlStringRGB(overrideColorValue));
+            }
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Applies color override to SVG content if the option is enabled.
+        /// </summary>
+        private string ApplyColorOverride(string svg)
+        {
+            if (!overrideColor)
+                return svg;
+            return SvgSanitizer.OverrideColor(svg, "#" + ColorUtility.ToHtmlStringRGB(overrideColorValue));
+        }
+
+        /// <summary>
+        /// Sets up the PNG texture importer so alpha is treated as transparency.
+        /// </summary>
+#if EXICON_VECTORGRAPHICS
+        private static void ConfigurePngImporter(string assetPath)
+        {
+            AssetDatabase.ImportAsset(assetPath);
+            var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.alphaIsTransparency = true;
+                importer.alphaSource = TextureImporterAlphaSource.FromInput;
+                importer.SaveAndReimport();
+            }
+        }
+#endif
 
         private async void LoadIcons()
         {
@@ -356,7 +466,7 @@ namespace SvgIconFetcher.Window
             catch (System.Exception e)
             {
                 loadingMessage = "";
-                EditorUtility.DisplayDialog("Error Loading Icons", e.Message, "OK");
+                ShowNotification($"Error loading icons: {e.Message}", MessageType.Error);
             }
             finally
             {
@@ -374,13 +484,52 @@ namespace SvgIconFetcher.Window
             {
                 System.IO.File.Delete(cachePath);
                 Debug.Log($"Cache cleared for {source.Name}");
-                EditorUtility.DisplayDialog("Cache Cleared", $"Cache cleared for {source.Name}\\nYou can now reload icons.", "OK");
+                ShowNotification($"Cache cleared for {source.Name}. You can now reload icons.", MessageType.Info);
             }
             else
             {
-                EditorUtility.DisplayDialog("No Cache", "No cache found for this icon pack.", "OK");
+                ShowNotification("No cache found for this icon pack.", MessageType.Warning);
             }
         }
+
+        // ── Inline notification helpers ──────────────────────────────────
+
+        private void ShowNotification(string message, MessageType type, float durationSeconds = 5f)
+        {
+            notificationMessage = message;
+            notificationType = type;
+            notificationExpireTime = EditorApplication.timeSinceStartup + durationSeconds;
+            Repaint();
+        }
+
+        private void DrawNotification()
+        {
+            if (string.IsNullOrEmpty(notificationMessage))
+                return;
+
+            if (EditorApplication.timeSinceStartup > notificationExpireTime)
+            {
+                notificationMessage = "";
+                Repaint();
+                return;
+            }
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.HelpBox(notificationMessage, notificationType);
+            if (GUILayout.Button("×", GUILayout.Width(22), GUILayout.Height(38)))
+            {
+                notificationMessage = "";
+                Repaint();
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space(2);
+
+            // Keep repainting to auto-dismiss when time expires
+            Repaint();
+        }
+
+        // ─────────────────────────────────────────────────────────────────
 
         private async void DownloadSelected()
         {
@@ -456,6 +605,7 @@ namespace SvgIconFetcher.Window
                 var url = $"{source.BaseUrl}/{icon}.svg";
                 var svg = await SvgDownloader.Download(url);
                 svg = SvgSanitizer.Sanitize(svg);
+                svg = ApplyColorOverride(svg);
 
                 if (!System.IO.Directory.Exists(folder))
                     System.IO.Directory.CreateDirectory(folder);
@@ -463,6 +613,16 @@ namespace SvgIconFetcher.Window
                 var path = System.IO.Path.Combine(folder, $"{icon}.svg");
                 System.IO.File.WriteAllText(path, svg);
                 AssetDatabase.ImportAsset(path);
+
+                // Export as PNG if enabled
+#if EXICON_VECTORGRAPHICS
+                if (exportAsPng)
+                {
+                    var pngPath = System.IO.Path.Combine(folder, $"{icon}.png");
+                    SvgToPngConverter.SavePng(svg, pngPath, pngSizes[pngSizeIndex]);
+                    ConfigurePngImporter(pngPath);
+                }
+#endif
                 
                 // Try to download license file from the repository
                 var githubInfo = ExtractGitHubInfo(source.BaseUrl);
@@ -517,6 +677,7 @@ namespace SvgIconFetcher.Window
                 // Download and sanitize SVG
                 var svg = await SvgDownloader.Download(rawUrl);
                 customIconPreview = SvgSanitizer.Sanitize(svg);
+                customIconPreview = ApplyColorOverride(customIconPreview);
                 
                 // Save to disk
                 if (!System.IO.Directory.Exists(customOutputFolder))
@@ -525,6 +686,16 @@ namespace SvgIconFetcher.Window
                 var path = System.IO.Path.Combine(customOutputFolder, $"{customIconName}.svg");
                 System.IO.File.WriteAllText(path, customIconPreview);
                 AssetDatabase.ImportAsset(path);
+
+                // Export as PNG if enabled
+#if EXICON_VECTORGRAPHICS
+                if (exportAsPng)
+                {
+                    var pngPath = System.IO.Path.Combine(customOutputFolder, $"{customIconName}.png");
+                    SvgToPngConverter.SavePng(customIconPreview, pngPath, pngSizes[pngSizeIndex]);
+                    ConfigurePngImporter(pngPath);
+                }
+#endif
                 
                 // Try to download license file from the repository
                 var githubInfo = ExtractGitHubInfo(customUrl);
@@ -683,7 +854,7 @@ namespace SvgIconFetcher.Window
             catch (System.Exception e)
             {
                 folderLoadingMessage = "";
-                EditorUtility.DisplayDialog("Error Loading Folder", e.Message, "OK");
+                ShowNotification($"Error loading folder: {e.Message}", MessageType.Error);
             }
             finally
             {
@@ -704,7 +875,7 @@ namespace SvgIconFetcher.Window
             var parsed = FolderIndexFetcher.ParseGitHubFolderUrl(folderUrl);
             if (!parsed.HasValue)
             {
-                EditorUtility.DisplayDialog("Error", "Invalid folder URL", "OK");
+                ShowNotification("Invalid folder URL.", MessageType.Error);
                 isDownloadingFolder = false;
                 return;
             }
@@ -787,6 +958,7 @@ namespace SvgIconFetcher.Window
                 
                 var svg = await SvgDownloader.Download(downloadUrl);
                 svg = SvgSanitizer.Sanitize(svg);
+                svg = ApplyColorOverride(svg);
 
                 if (!System.IO.Directory.Exists(folder))
                     System.IO.Directory.CreateDirectory(folder);
@@ -794,6 +966,16 @@ namespace SvgIconFetcher.Window
                 var path = System.IO.Path.Combine(folder, $"{icon}.svg");
                 System.IO.File.WriteAllText(path, svg);
                 AssetDatabase.ImportAsset(path);
+
+                // Export as PNG if enabled
+#if EXICON_VECTORGRAPHICS
+                if (exportAsPng)
+                {
+                    var pngPath = System.IO.Path.Combine(folder, $"{icon}.png");
+                    SvgToPngConverter.SavePng(svg, pngPath, pngSizes[pngSizeIndex]);
+                    ConfigurePngImporter(pngPath);
+                }
+#endif
                 
                 // Try to download license file from the repository (only once, check if it already exists)
                 if (!System.IO.File.Exists(System.IO.Path.Combine(folder, "LICENSE")))

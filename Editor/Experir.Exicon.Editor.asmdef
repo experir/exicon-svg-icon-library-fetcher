@@ -1,7 +1,9 @@
 {
   "name": "Experir.Exicon.Editor",
   "rootNamespace": "SvgIconFetcher",
-  "references": [],
+  "references": [
+    "Unity.VectorGraphics"
+  ],
   "includePlatforms": [
     "Editor"
   ],
@@ -11,6 +13,17 @@
   "precompiledReferences": [],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "com.unity.vectorgraphics",
+      "expression": "",
+      "define": "EXICON_VECTORGRAPHICS"
+    },
+    {
+      "name": "Unity",
+      "expression": "6000.3.0",
+      "define": "EXICON_VECTORGRAPHICS"
+    }
+  ],
   "noEngineReferences": false
 }
